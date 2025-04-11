@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: server-status-bot
+  namespace: discord-bots
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: server-status-bot
+  template:
+    metadata:
+      labels:
+        app: server-status-bot
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+        - name: server-status-bot
+          image: server-status-bot:latest
+          imagePullPolicy: Never
