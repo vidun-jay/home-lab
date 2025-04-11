@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kyoko-bot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kyoko-bot
+  template:
+    metadata:
+      labels:
+        app: kyoko-bot
+    spec:
+      containers:
+      - name: kyoko-bot
+        image: your_dockerhub_username/kyoko-bot:latest
+        imagePullPolicy: Always
