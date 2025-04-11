@@ -1,9 +1,0 @@
-[submodule "discord-bots/birthday-bot"]
-	path = discord-bots/birthday-bot
-	url = git@github.com:vidun-jay/birthday-bot.git
-[submodule "discord-bots/server-status-bot"]
-	path = discord-bots/server-status-bot
-	url = git@github.com:vidun-jay/server-status-bot.git
-[submodule "discord-bots/kyoko-bot"]
-	path = discord-bots/kyoko-bot
-	url = git@github.com:vidun-jay/kyoko-bot.git
