@@ -17,5 +17,5 @@ spec:
       dnsPolicy: ClusterFirstWithHostNet
       containers:
         - name: server-status-bot
-          image: server-status-bot:latest
-          imagePullPolicy: Never
+          image: vidunvj/server-status-bot:latest
+          imagePullPolicy: Always

@@ -15,5 +15,5 @@ spec:
     spec:
       containers:
       - name: birthday-bot
-        image: birthday-bot:latest
-        imagePullPolicy: Never
+        image: vidunvj/birthday-bot:latest
+        imagePullPolicy: Always

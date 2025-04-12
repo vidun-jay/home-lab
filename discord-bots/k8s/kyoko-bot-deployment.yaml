@@ -15,5 +15,5 @@ spec:
     spec:
       containers:
       - name: kyoko-bot
-        image: kyoko-bot:latest
-        imagePullPolicy: Never
+        image: vidunvj/kyoko-bot:latest
+        imagePullPolicy: Always
