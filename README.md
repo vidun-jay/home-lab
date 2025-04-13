@@ -4,7 +4,7 @@ Monorepo for home Kubernetes lab.
 ## 🐳 Docker Hub
 
 All images are published to:  
-👉 [**docker.io/vidunj**](https://hub.docker.com/u/vidunj)
+👉 [**docker.io/vidunvj**](https://hub.docker.com/u/vidunvj)
 
 Used across bots and services in this repo.
 
