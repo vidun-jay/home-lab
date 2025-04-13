@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: plex
+  labels:
+    app: plex
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: plex
+  template:
+    metadata:
+      labels:
+        app: plex
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: casaos
+      tolerations:
+        - key: "node.kubernetes.io/disk-pressure"
+          operator: "Exists"
+          effect: "NoSchedule"
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+      - name: plex
+        image: lscr.io/linuxserver/plex:latest
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: PUID
+          value: "1000"
+        - name: PGID
+          value: "1000"
+        - name: TZ
+          value: "America/Toronto"
+        - name: VERSION
+          value: "docker"
+        - name: PLEX_CLAIM
+          value: ""
+        volumeMounts:
+        - name: config
+          mountPath: /config
+        - name: media
+          mountPath: /data
+        ports:
+        - containerPort: 32400
+        - containerPort: 1900
+        - containerPort: 32469
+      volumes:
+      - name: config
+        hostPath:
+          path: /mnt/media/plex
+          type: Directory
+      - name: media
+        hostPath:
+          path: /mnt/media
+          type: Directory
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: plex
+  labels:
+    app: plex
+spec:
+  type: ClusterIP
+  selector:
+    app: plex
+  ports:
+  - name: http
+    port: 32400
+    targetPort: 32400
+    protocol: TCP
