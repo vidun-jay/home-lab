@@ -1,0 +1,54 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: twingate-secret
+  namespace: networking
+type: Opaque
+data:
+  # Replace with **base64-encoded** values of your actual tokens.
+  # e.g. echo -n 'YOUR_ACCESS_TOKEN' | base64
+  TWINGATE_ACCESS_TOKEN: ZXlKaGJHY2lPaUpGVXpJMU5pSXNJbXRwWkNJNklqZHJhRlJ1UldwMWJIQnRiak0zWm5sVmRuUmFORTlTWmpSRmFHNDFRMDlmTjFVMVFWaDZXREZZYTBFaUxDSjBlWEFpT2lKRVFWUWlmUS5leUp1ZENJNklrRk9JaXdpWVdsa0lqb2lORGszTlRFNUlpd2laR2xrSWpvaU1qRTBOVE13TXlJc0ltcDBhU0k2SW1Fd01UWTNZMk5oTFRJd01UZ3ROR1E0TkMwNE1UYzFMVEprWm1Zd1kyRTJaall5TlNJc0ltbHpjeUk2SW5SM2FXNW5ZWFJsSWl3aVlYVmtJam9pYTJsM1lXNXBjeUlzSW1WNGNDSTZNVGMwTkRVMk5qa3hNU3dpYVdGMElqb3hOelEwTlRZek16RXhMQ0oyWlhJaU9pSTBJaXdpZEdsa0lqb2lNell6TkRraUxDSnlibmNpT2pFM05EUTFOak0xTkRRc0luSnVaWFJwWkNJNklqUTBOelExSW4wLk9nNFhtVi15M29DS2tQTlY3ZHlwSVBsZlRBR0x0TUQzMXRVTHNiSm1mUjdaNTR4bjNjU3lTTkxPWmZKb3dfUDJjd3lxekFwcXd5ZEExTGZTUjR4bTV3
+  TWINGATE_REFRESH_TOKEN: NklRS3NrbjhUQllaaDF1c3lJTjF4bUxHUmFlTzUtVHptd3YtZUI1LTh3REFldHQ2dkxHeFVqQ1ctWDFYOVV3RDQxY2xfblNxeFRJd0NvdnIxYktQa0tYSWpweEFCemJpWUN2bWlsYk5xZHZxNm1FTTFFUGF6ci0tNmVsb2RCYklSWW15OXc=
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: twingate-connector
+  labels:
+    app: twingate-connector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: twingate-connector
+  template:
+    metadata:
+      labels:
+        app: twingate-connector
+    spec:
+      hostNetwork: true
+
+      containers:
+      - name: twingate-connector
+        image: vidunvj/twingate-connector:latest
+
+        env:
+          - name: TWINGATE_ACCESS_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: twingate-secret
+                key: TWINGATE_ACCESS_TOKEN
+
+          - name: TWINGATE_REFRESH_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: twingate-secret
+                key: TWINGATE_REFRESH_TOKEN
+
+          - name: TWINGATE_NETWORK
+            value: "kiwanis"
+          - name: TWINGATE_LABEL_HOSTNAME
+            value: "k8s-connector"
+          - name: TWINGATE_LABEL_DEPLOYED_BY
+            value: "kubernetes"
