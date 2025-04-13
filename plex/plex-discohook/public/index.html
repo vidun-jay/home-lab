@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plex Webhook Server</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="icon"></div>
+        <input type="text" id="urlInput" class="url-input" placeholder="Plex URL">
+
+        <div class="input-group">
+            <label for="librarySelect">Select a library: </label>
+            <select id="librarySelect" name="library" required>
+              <option value="" disabled selected>Select...</option>
+              <option value="Anime">Anime</option>
+              <option value="Movies">Movies</option>
+              <option value="TV Shows">TV Shows</option>
+            </select>
+          </div>
+
+        <button id="submitBtn" class="submit-button">Submit</button>
+
+    </div>
+    <script src="script.js"></script>
+
+</body>
+
+</html>

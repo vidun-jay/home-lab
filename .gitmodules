@@ -7,3 +7,6 @@
 [submodule "discord-bots/kyoko-bot"]
 	path = discord-bots/kyoko-bot
 	url = git@github.com:vidun-jay/kyoko-bot.git
+[submodule "plex-discohook"]
+	path = plex-discohook
+	url = git@github.com:vidun-jay/plex-discohook.git

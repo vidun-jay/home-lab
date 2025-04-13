@@ -1,0 +1,112 @@
+/* Basic reset for major elements */
+html, body, div, form, input, button {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-family: Arial, sans-serif;
+}
+
+/* Apply basic styling */
+body {
+  background-color: #f5f7fa;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 16px;
+  color: #333;
+}
+
+/* Styling for the container */
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Icon and Input styling */
+.icon {
+  width: 100px;
+  height: 100px;
+  display: inline-block;
+  margin-bottom: 20px;
+  background-image: url('icon.png');
+  background-size: cover;
+  background-position: center;
+}
+
+.url-input {
+  width: 300px;
+  padding: 12px 20px;
+  margin-bottom: 20px;
+  border-radius: 20px;
+  border: 1px solid #ddd;
+}
+
+/* Button styling */
+.submit-button {
+  padding: 12px 20px;
+  border-radius: 20px;
+  background-color: #F8BC05;
+  color: white;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.3s;
+}
+
+.submit-button:hover {
+  background-color: #CF8117;
+}
+
+/* Responsive styling */
+@media (max-width: 600px) {
+  .url-input, .submit-button {
+    width: 80%;
+  }
+}
+
+/* Styles for the form inputs and dropdown */
+.input-group {
+  margin-bottom: 20px;
+}
+
+.input-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 1rem;
+  color: #333;
+}
+
+.input-group select {
+  width: 100%;
+  padding: 10px;
+  font-size: 1rem;
+  color: #333;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  -webkit-appearance: none;  /* Remove default style of select in WebKit browsers */
+  -moz-appearance: none;     /* Remove default style of select in Firefox */
+  appearance: none;          /* Remove default style of select in standard browsers */
+  background-image: url('data:image/svg+xml;charset=US-ASCII,<svg width="12px" height="12px" viewBox="0 0 4 5" xmlns="http://www.w3.org/2000/svg"><polyline points="2,1 0,3 4,3" style="fill:none;stroke:black;stroke-width:0.5;"/></svg>'); /* Arrow icon */
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 12px 12px;
+}
+
+/* Style focus state for better accessibility */
+.input-group select:focus {
+  border-color: #a6a6a6;
+  outline: none;
+}
+
+/* Optionally, style the options */
+.input-group option {
+  padding: 10px;
+}
