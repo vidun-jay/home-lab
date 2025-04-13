@@ -1,0 +1,14 @@
+version: "3.8"
+
+services:
+  twingate-connector:
+    image: twingate/connector:1
+    container_name: twingate-bulky-puffin
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - TWINGATE_NETWORK=kiwanis
+      - TWINGATE_ACCESS_TOKEN=eyJhbGciOiJFUzI1NiIsImtpZCI6IjdraFRuRWp1bHBtbjM3ZnlVdnRaNE9SZjRFaG41Q09fN1U1QVh6WDFYa0EiLCJ0eXAiOiJEQVQifQ.eyJudCI6IkFOIiwiYWlkIjoiNDk3NTE5IiwiZGlkIjoiMjE0NTMwMyIsImp0aSI6ImEwMTY3Y2NhLTIwMTgtNGQ4NC04MTc1LTJkZmYwY2E2ZjYyNSIsImlzcyI6InR3aW5nYXRlIiwiYXVkIjoia2l3YW5pcyIsImV4cCI6MTc0NDU2NjkxMSwiaWF0IjoxNzQ0NTYzMzExLCJ2ZXIiOiI0IiwidGlkIjoiMzYzNDkiLCJybnciOjE3NDQ1NjM1NDQsInJuZXRpZCI6IjQ0NzQ1In0.Og4XmV-y3oCKkPNV7dypIPlfTAGLtMD31tULsbJmfR7Z54xn3cSySNLOZfJow_P2cwyqzApqwydA1LfSR4xm5w
+      - TWINGATE_REFRESH_TOKEN=6IQKskn8TBYZh1usyIN1xmLGRaeO5-Tzmwv-eB5-8wDAett6vLGxUjCW-X1X9UwD41cl_nSqxTIwCovr1bKPkKXIjpxABzbiYCvmilbNqdvq6mEM1EPazr--6elodBbIRYmy9w
+      - TWINGATE_LABEL_HOSTNAME=${HOSTNAME}
+      - TWINGATE_LABEL_DEPLOYED_BY=docker
