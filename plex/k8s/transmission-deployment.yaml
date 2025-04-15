@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: transmission
+  namespace: plex
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: transmission
+  template:
+    metadata:
+      labels:
+        app: transmission
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: casaos
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+        - name: transmission
+          image: lscr.io/linuxserver/transmission:latest
+          imagePullPolicy: Always
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: "America/Toronto"
+          ports:
+            - containerPort: 9091
+            - containerPort: 51413
+            - containerPort: 51413
+              protocol: UDP
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: media
+              mountPath: /media
+      volumes:
+        - name: config
+          hostPath:
+            path: /mnt/media/transmission-config
+            type: DirectoryOrCreate
+        - name: media
+          hostPath:
+            path: /mnt/media
+            type: Directory
