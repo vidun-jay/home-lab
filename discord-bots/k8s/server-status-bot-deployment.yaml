@@ -19,3 +19,15 @@ spec:
         - name: server-status-bot
           image: vidunvj/server-status-bot:latest
           imagePullPolicy: Always
+          env:
+            - name: TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: discord-webhook-secret
+                  key: DISCORD_TOKEN
+            - name: WEBHOOK
+              valueFrom:
+                secretKeyRef:
+                  name: discord-webhook-secret
+                  key: DISCORD_WEBHOOK_URL
+
