@@ -19,3 +19,9 @@ spec:
         - name: webhook-server
           image: vidunvj/plex-webhook-server:latest
           imagePullPolicy: Always
+          env:
+            - name: DISCORD_WEBHOOK_URL
+              valueFrom:
+                secretKeyRef:
+                  name: discord-webhook-secret
+                  key: DISCORD_WEBHOOK_URL

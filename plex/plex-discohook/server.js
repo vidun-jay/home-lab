@@ -1,4 +1,5 @@
 const express = require('express');
+const fetch = require('node-fetch');
 const puppeteer = require('puppeteer');
 const path = require('path');
 const cors = require('cors');
