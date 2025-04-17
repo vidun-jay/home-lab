@@ -22,4 +22,3 @@ make plex     # deploys only the Plex server
 ## 📋 To Do
 - [ ] Implement CI/CD pipeline using GitHub Actions
 - [ ] Finish adding all components to cluster
-  - [ ] Migrate minecraft server to cluster
