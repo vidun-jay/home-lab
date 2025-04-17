@@ -17,3 +17,16 @@ spec:
       - name: birthday-bot
         image: vidunvj/birthday-bot:latest
         imagePullPolicy: Always
+        env:
+        - name: TZ
+          value: "America/Toronto"
+        volumeMounts:
+        - name: tz-config
+          mountPath: /etc/localtime
+          readOnly: true
+      volumes:
+      - name: tz-config
+        hostPath:
+          path: /etc/localtime
+          type: File
+

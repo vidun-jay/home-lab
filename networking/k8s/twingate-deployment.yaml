@@ -1,4 +1,5 @@
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 version: "3.8"
 
 services:
@@ -14,6 +15,8 @@ services:
       - TWINGATE_LABEL_HOSTNAME=${HOSTNAME}
       - TWINGATE_LABEL_DEPLOYED_BY=docker
 =======
+=======
+>>>>>>> Stashed changes
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -58,4 +61,7 @@ spec:
                   fieldPath: spec.nodeName
             - name: TWINGATE_LABEL_DEPLOYED_BY
               value: kubernetes
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
