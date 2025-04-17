@@ -59,6 +59,13 @@ spec:
               value: "PAPER"
             - name: VERSION
               value: "1.21.4"
+          resources:
+            requests:
+              cpu: "3"
+              memory: "6Gi"
+            limits:
+              cpu: "5"
+              memory: "12Gi"
           volumeMounts:
             - name: minecraft-data
               mountPath: /data
