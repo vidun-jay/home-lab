@@ -1,0 +1,12 @@
+grafana:
+  adminPassword: admin
+  service:
+    type: NodePort
+    nodePort: 32000
+
+prometheus:
+  prometheusSpec:
+    serviceMonitorSelectorNilUsesHelmValues: false
+
+alertmanager:
+  enabled: true
