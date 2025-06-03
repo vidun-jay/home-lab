@@ -1,0 +1,19 @@
+grafana:
+  admin:
+    existingSecret: grafana-admin-credentials
+  service:
+    type: NodePort
+    nodePort: 32000
+  persistence:
+    enabled: true
+    storageClassName: local-path
+    accessModes:
+      - ReadWriteOnce
+    size: 5Gi
+
+prometheus:
+  prometheusSpec:
+    serviceMonitorSelectorNilUsesHelmValues: false
+
+alertmanager:
+  enabled: true
