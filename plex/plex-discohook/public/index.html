@@ -1,33 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plex Webhook Server</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <title>Plex Webhook Server</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-    <div class="container">
-        <div class="icon"></div>
-        <input type="text" id="urlInput" class="url-input" placeholder="Plex URL">
 
-        <div class="input-group">
-            <label for="librarySelect">Select a library: </label>
-            <select id="librarySelect" name="library" required>
-              <option value="" disabled selected>Select...</option>
-              <option value="Anime">Anime</option>
-              <option value="Movies">Movies</option>
-              <option value="TV Shows">TV Shows</option>
-            </select>
-          </div>
+  <div class="logo-container">
+    <img src="icon.png" alt="Plex Adder logo" class="logo">
+  </div>
 
-        <button id="submitBtn" class="submit-button">Submit</button>
+  <div id="controls">
+    <input
+      id="search"
+      type="text"
+      placeholder="Search movies or TV shows…"
+      autocomplete="off"
+    />
+    <button id="searchBtn">Search</button>
+  </div>
 
-    </div>
-    <script src="script.js"></script>
+  <div id="results"></div>
 
+  <script>
+    const searchInput  = document.getElementById('search')
+    const searchBtn    = document.getElementById('searchBtn')
+    const resultsDiv   = document.getElementById('results')
+    let currentResults = []
+
+    searchBtn.addEventListener('click', () => doSearch(searchInput.value))
+    searchInput.addEventListener('keypress', e => {
+      if (e.key === 'Enter') doSearch(searchInput.value)
+    })
+
+    async function doSearch(q) {
+      const trimmed = q.trim()
+      if (!trimmed) {
+        resultsDiv.innerHTML = ''
+        return
+      }
+      searchBtn.disabled    = true
+      searchBtn.textContent = 'Searching…'
+      try {
+        const res = await fetch('/search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: trimmed })
+        })
+        const { results } = await res.json()
+        currentResults = results
+        renderResults()
+      } catch (err) {
+        console.error(err)
+      } finally {
+        searchBtn.disabled    = false
+        searchBtn.textContent = 'Search'
+      }
+    }
+
+    function renderResults() {
+      const typeLabels = { movie: 'Movie', tv: 'Show' }
+      resultsDiv.innerHTML = currentResults
+        .map((r, i) => {
+          const label = typeLabels[r.mediaType] || r.mediaType
+          return `
+          <div class="result">
+            ${r.posterUrl ? `<img src="${r.posterUrl}" alt="">` : ''}
+            <div class="info">
+              <h4>${r.title}</h4>
+              <p>${label}</p>
+            </div>
+            <button class="btn" data-index="${i}">
+              Add to Plex
+            </button>
+          </div>`
+        })
+        .join('')
+
+      document.querySelectorAll('.btn').forEach(btn =>
+        btn.addEventListener('click', () => addToPlex(btn.dataset.index))
+      )
+    }
+
+    async function addToPlex(idx) {
+      const item = currentResults[idx]
+      const btn  = document.querySelector(`.btn[data-index="${idx}"]`)
+      btn.disabled    = true
+      btn.textContent = 'Adding…'
+      try {
+        const res  = await fetch('/add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(item)
+        })
+        const json = await res.json()
+        btn.textContent = json.success ? 'Added' : 'Error'
+      } catch (err) {
+        console.error(err)
+        btn.textContent = 'Error'
+      }
+    }
+  </script>
 </body>
-
 </html>
