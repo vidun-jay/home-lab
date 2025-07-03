@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: twingate-connector
+  namespace: networking
+  labels:
+    app: twingate-connector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: twingate-connector
+  template:
+    metadata:
+      labels:
+        app: twingate-connector
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+        - name: twingate-connector
+          image: twingate/connector:1
+          env:
+            - name: TWINGATE_ACCESS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: twingate-credentials
+                  key: TWINGATE_ACCESS_TOKEN
+            - name: TWINGATE_REFRESH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: twingate-credentials
+                  key: TWINGATE_REFRESH_TOKEN
+            - name: TWINGATE_NETWORK
+              valueFrom:
+                secretKeyRef:
+                  name: twingate-credentials
+                  key: TWINGATE_NETWORK
+            - name: TWINGATE_LABEL_HOSTNAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: TWINGATE_LABEL_DEPLOYED_BY
+              value: kubernetes
