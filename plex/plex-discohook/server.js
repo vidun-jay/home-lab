@@ -55,7 +55,7 @@ app.post('/add', async (req, res) => {
   // build embed
   const embed = {
     embeds: [{
-      title: `"${title}" - has been added to Plex`,
+      title: `"${title}" - has been added to Plex!`,
       url:   link,
       description: description || '',
       thumbnail:   { url: posterUrl || '' },
