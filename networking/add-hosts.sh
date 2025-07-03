@@ -4,7 +4,7 @@
 HOST_ENTRIES=$(cat <<EOF
 
 # Home Lab Entries
-192.168.2.22	transmission.lab.local grafana.lab.local
+192.168.2.22	transmission.lab.local grafana.lab.local radarr.lab.local sonarr.lab.local
 192.168.2.252	webhook.lab.local
 192.168.2.254	esxi.lab.local
 EOF
