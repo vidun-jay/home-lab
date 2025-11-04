@@ -11,19 +11,71 @@ packages:
   - htop
   - net-tools
 
-# Configure Docker
+# Configure Docker and services
 runcmd:
-  - systemctl enable docker
-  - systemctl start docker
+  # Wait for apt to finish and verify packages
+  - |
+    echo "Waiting for apt/dpkg to be available..."
+    while sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1 || sudo fuser /var/lib/apt/lists/lock >/dev/null 2>&1; do
+      echo "Waiting for other package manager to finish..."
+      sleep 1
+    done
+  
+  # Install Docker if not present (backup method)
+  - |
+    if ! command -v docker &> /dev/null; then
+      echo "Docker not found, installing via convenience script..."
+      curl -fsSL https://get.docker.com -o get-docker.sh
+      sudo sh get-docker.sh
+    fi
+  
+  # Configure Docker
+  - systemctl enable docker || true
+  - systemctl start docker || true
   - usermod -aG docker ubuntu
+  
+  # Verify Docker is running
+  - |
+    echo "Verifying Docker installation..."
+    for i in {1..30}; do
+      if systemctl is-active docker >/dev/null 2>&1; then
+        echo "✅ Docker is running"
+        break
+      fi
+      echo "Waiting for Docker to start... ($i/30)"
+      sleep 2
+    done
   
   # Create directory and set permissions
   - mkdir -p /opt/minecraft-proxy
   - chmod 755 /opt/minecraft-proxy/update-backend-ip.sh
   
-  # Start the proxy
-  - cd /opt/minecraft-proxy
-  - docker-compose up -d
+  # Verify files exist before starting
+  - |
+    echo "Verifying required files..."
+    for file in nginx.conf docker-compose.yml update-backend-ip.sh; do
+      if [ ! -f "/opt/minecraft-proxy/$file" ]; then
+        echo "❌ Error: /opt/minecraft-proxy/$file not found"
+        exit 1
+      fi
+    done
+    echo "✅ All required files present"
+  
+  # Start the proxy with verification
+  - |
+    cd /opt/minecraft-proxy
+    docker-compose pull
+    docker-compose up -d
+    
+    # Verify container is running
+    for i in {1..5}; do
+      if docker-compose ps | grep -q "Up"; then
+        echo "✅ Minecraft proxy container is running"
+        break
+      fi
+      echo "Waiting for container to start... ($i/5)"
+      sleep 5
+    done
   
   # Create systemd service for auto-start
   - |
