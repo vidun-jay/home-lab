@@ -52,22 +52,10 @@ resource "oci_core_security_list" "minecraft_proxy_sl" {
     protocol    = "all"
   }
 
-  # SSH access from your home IP
   ingress_security_rules {
     protocol = "6" # TCP
-    source   = "${var.home_public_ip}/32"
-    
-    tcp_options {
-      min = 22
-      max = 22
-    }
-  }
+    source   = "0.0.0.0/0"
 
-  # SSH access from the starbucks I'm currently deploying this from
-  ingress_security_rules {
-    protocol = "6" # TCP
-    source   = "98.252.92.58/32"
-    
     tcp_options {
       min = 22
       max = 22
