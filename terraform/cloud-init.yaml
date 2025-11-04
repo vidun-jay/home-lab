@@ -4,37 +4,30 @@ package_upgrade: true
 
 # Install packages and configure services
 runcmd:
-  # Install packages with retries
+  # Configure Docker (install from official Docker repository)
   - |
-    echo "Installing required packages..."
-    for pkg in docker.io docker-compose nginx curl wget htop net-tools; do
-      for i in {1..3}; do
-        if sudo DEBIAN_FRONTEND=noninteractive apt-get install -y $pkg; then
-          echo "✅ Installed $pkg"
-          break
-        else
-          echo "Failed to install $pkg, attempt $i/3"
-          sleep 5
-        fi
-      done
-    done
-  # Wait for apt to finish and verify packages
-  - |
-    echo "Waiting for apt/dpkg to be available..."
-    while sudo fuser /var/lib/dpkg/lock >/dev/null 2>&1 || sudo fuser /var/lib/apt/lists/lock >/dev/null 2>&1; do
-      echo "Waiting for other package manager to finish..."
-      sleep 1
-    done
-  
-  # Install Docker if not present (backup method)
-  - |
-    if ! command -v docker &> /dev/null; then
-      echo "Docker not found, installing via convenience script..."
-      curl -fsSL https://get.docker.com -o get-docker.sh
-      sudo sh get-docker.sh
-    fi
-  
-  # Configure Docker
+    set -euo pipefail
+    echo "Configuring Docker repository and installing Docker Engine + Compose plugin"
+
+    # Ensure apt indexes are updated
+    apt-get update
+
+    # Install prerequisites
+    apt-get install -y ca-certificates curl gnupg lsb-release apt-transport-https software-properties-common
+
+    # Add Docker's official GPG key and repository
+    mkdir -p /etc/apt/keyrings
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo $VERSION_CODENAME) stable" > /etc/apt/sources.list.d/docker.list
+    apt-get update
+
+    # Install Docker Engine and Compose plugin (non-interactive)
+    DEBIAN_FRONTEND=noninteractive apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+
+    # Provide fallback: optionally install legacy docker-compose binary (uncomment to enable)
+    # curl -L "https://github.com/docker/compose/releases/download/v2.20.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose && chmod +x /usr/local/bin/docker-compose
+
+    echo "✅ Docker packages installed"
   - systemctl enable docker || true
   - systemctl start docker || true
   - usermod -aG docker ubuntu
@@ -68,9 +61,10 @@ runcmd:
   
   # Start the proxy with verification
   - |
-    cd /opt/minecraft-proxy
-    docker-compose pull
-    docker-compose up -d
+  cd /opt/minecraft-proxy
+  # Use the Compose plugin
+  docker compose pull || true
+  docker compose up -d
     
     # Verify container is running
     for i in {1..5}; do
@@ -94,8 +88,8 @@ runcmd:
     Type=oneshot
     RemainAfterExit=yes
     WorkingDirectory=/opt/minecraft-proxy
-    ExecStart=/usr/bin/docker-compose up -d
-    ExecStop=/usr/bin/docker-compose down
+  ExecStart=/usr/bin/docker compose up -d
+  ExecStop=/usr/bin/docker compose down
     TimeoutStartSec=0
     
     [Install]
@@ -194,8 +188,8 @@ write_files:
       echo "Updating backend IP to: $NEW_IP:25565"
       sed -i "s/server [0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}:25565;/server $NEW_IP:25565;/" /opt/minecraft-proxy/nginx.conf
       
-      cd /opt/minecraft-proxy
-      docker-compose restart minecraft-proxy
+  cd /opt/minecraft-proxy
+  docker compose restart minecraft-proxy
       
       echo "✅ Backend IP updated to $NEW_IP:25565"
 
