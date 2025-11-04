@@ -78,3 +78,9 @@ variable "boot_volume_size_gb" {
   type        = number
   default     = 50
 }
+
+variable "compose_version" {
+  description = "Version of Docker Compose binary to download as fallback (e.g. v2.20.2)"
+  type        = string
+  default     = "v2.20.2"
+}

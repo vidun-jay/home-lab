@@ -1,7 +1,8 @@
 # Cloud-init script to set up the Minecraft reverse proxy
 locals {
   cloud_init_script = base64encode(templatefile("${path.module}/cloud-init.yaml", {
-    minecraft_backend_ip = var.minecraft_backend_ip
+    minecraft_backend_ip = var.minecraft_backend_ip,
+    COMPOSE_VER = var.compose_version
   }))
 }
 
