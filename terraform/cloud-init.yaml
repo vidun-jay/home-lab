@@ -2,17 +2,22 @@
 package_update: true
 package_upgrade: true
 
-packages:
-  - docker.io
-  - docker-compose
-  - nginx
-  - curl
-  - wget
-  - htop
-  - net-tools
-
-# Configure Docker and services
+# Install packages and configure services
 runcmd:
+  # Install packages with retries
+  - |
+    echo "Installing required packages..."
+    for pkg in docker.io docker-compose nginx curl wget htop net-tools; do
+      for i in {1..3}; do
+        if sudo DEBIAN_FRONTEND=noninteractive apt-get install -y $pkg; then
+          echo "✅ Installed $pkg"
+          break
+        else
+          echo "Failed to install $pkg, attempt $i/3"
+          sleep 5
+        fi
+      done
+    done
   # Wait for apt to finish and verify packages
   - |
     echo "Waiting for apt/dpkg to be available..."
