@@ -17,75 +17,9 @@ runcmd:
   - systemctl start docker
   - usermod -aG docker ubuntu
   
-  # Create nginx configuration for Minecraft proxy
+  # Create directory and set permissions
   - mkdir -p /opt/minecraft-proxy
-  - |
-    cat > /opt/minecraft-proxy/nginx.conf << EOF
-    events {
-        worker_connections 1024;
-    }
-    
-    stream {
-        upstream minecraft_backend {
-            server ${minecraft_backend_ip}:25565;
-        }
-        
-        server {
-            listen 25565;
-            proxy_pass minecraft_backend;
-            proxy_timeout 1s;
-            proxy_responses 1;
-            proxy_connect_timeout 1s;
-        }
-        
-        error_log /var/log/nginx/error.log;
-    }
-    EOF
-  
-  # Create docker-compose file
-  - |
-    cat > /opt/minecraft-proxy/docker-compose.yml << EOF
-    version: '3.8'
-    
-    services:
-      minecraft-proxy:
-        image: nginx:1.25-alpine
-        container_name: minecraft-reverse-proxy
-        ports:
-          - "25565:25565"
-        volumes:
-          - ./nginx.conf:/etc/nginx/nginx.conf:ro
-        restart: unless-stopped
-        environment:
-          - NGINX_ENTRYPOINT_QUIET_LOGS=1
-    EOF
-  
-  # Create update script
-  - |
-    cat > /opt/minecraft-proxy/update-backend-ip.sh << 'EOF'
-    #!/bin/bash
-    NEW_IP="$1"
-    
-    if [ -z "$NEW_IP" ]; then
-        echo "Usage: $0 <new-backend-ip>"
-        exit 1
-    fi
-    
-    if ! [[ $NEW_IP =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
-        echo "Error: Invalid IP address format"
-        exit 1
-    fi
-    
-    echo "Updating backend IP to: $NEW_IP:25565"
-    sed -i "s/server [0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}:25565;/server $NEW_IP:25565;/" /opt/minecraft-proxy/nginx.conf
-    
-    cd /opt/minecraft-proxy
-    docker-compose restart minecraft-proxy
-    
-    echo "✅ Backend IP updated to $NEW_IP:25565"
-    EOF
-  
-  - chmod +x /opt/minecraft-proxy/update-backend-ip.sh
+  - chmod 755 /opt/minecraft-proxy/update-backend-ip.sh
   
   # Start the proxy
   - cd /opt/minecraft-proxy
@@ -145,5 +79,67 @@ write_files:
       - `/opt/minecraft-proxy/nginx.conf` - Nginx configuration
       - `/opt/minecraft-proxy/docker-compose.yml` - Docker Compose setup
       - `/opt/minecraft-proxy/update-backend-ip.sh` - IP update script
+
+  - path: /opt/minecraft-proxy/nginx.conf
+    content: |
+      events {
+          worker_connections 1024;
+      }
+      
+      stream {
+          upstream minecraft_backend {
+              server ${minecraft_backend_ip}:25565;
+          }
+          
+          server {
+              listen 25565;
+              proxy_pass minecraft_backend;
+              proxy_timeout 1s;
+              proxy_responses 1;
+              proxy_connect_timeout 1s;
+          }
+          
+          error_log /var/log/nginx/error.log;
+      }
+
+  - path: /opt/minecraft-proxy/docker-compose.yml
+    content: |
+      version: '3.8'
+      
+      services:
+        minecraft-proxy:
+          image: nginx:1.25-alpine
+          container_name: minecraft-reverse-proxy
+          ports:
+            - "25565:25565"
+          volumes:
+            - ./nginx.conf:/etc/nginx/nginx.conf:ro
+          restart: unless-stopped
+          environment:
+            - NGINX_ENTRYPOINT_QUIET_LOGS=1
+
+  - path: /opt/minecraft-proxy/update-backend-ip.sh
+    permissions: '0755'
+    content: |
+      #!/bin/bash
+      NEW_IP="$1"
+      
+      if [ -z "$NEW_IP" ]; then
+          echo "Usage: $0 <new-backend-ip>"
+          exit 1
+      fi
+      
+      if ! [[ $NEW_IP =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+          echo "Error: Invalid IP address format"
+          exit 1
+      fi
+      
+      echo "Updating backend IP to: $NEW_IP:25565"
+      sed -i "s/server [0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}:25565;/server $NEW_IP:25565;/" /opt/minecraft-proxy/nginx.conf
+      
+      cd /opt/minecraft-proxy
+      docker-compose restart minecraft-proxy
+      
+      echo "✅ Backend IP updated to $NEW_IP:25565"
 
 final_message: "Minecraft reverse proxy setup complete!"
