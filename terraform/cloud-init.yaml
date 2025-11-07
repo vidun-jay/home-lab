@@ -2,90 +2,119 @@
 package_update: true
 package_upgrade: true
 
-# Install required packages
 packages:
   - docker.io
-  - containerd
-  - docker-compose-plugin
-  - ca-certificates
+  - docker-compose
+  - nginx
   - curl
-  - gnupg
-  - lsb-release
-  - apt-transport-https
-  - software-properties-common
+  - wget
+  - htop
+  - net-tools
 
-# Create proxy files reliably using write_files (these will be templated by Terraform)
-write_files:
-  - path: /opt/minecraft-proxy/nginx.conf
-    content: |
-      events {
-          worker_connections 1024;
-      }
-      
-      stream {
-          upstream minecraft_backend {
-              server ${minecraft_backend_ip}:25565;
-          }
-          
-          server {
-              listen 25565;
-              proxy_pass minecraft_backend;
-              proxy_timeout 1s;
-              proxy_responses 1;
-              proxy_connect_timeout 1s;
-          }
-          
-          error_log /var/log/nginx/error.log;
-      }
-
-  - path: /opt/minecraft-proxy/docker-compose.yml
-    content: |
-      version: '3.8'
-      
-      services:
-        minecraft-proxy:
-          image: nginx:1.25-alpine
-          container_name: minecraft-reverse-proxy
-          ports:
-            - "25565:25565"
-          volumes:
-            - ./nginx.conf:/etc/nginx/nginx.conf:ro
-          restart: unless-stopped
-          environment:
-            - NGINX_ENTRYPOINT_QUIET_LOGS=1
-
-  - path: /opt/minecraft-proxy/update-backend-ip.sh
-    permissions: '0755'
-    content: |
-      #!/bin/bash
-      NEW_IP="$1"
-      
-      if [ -z "$NEW_IP" ]; then
-          echo "Usage: $0 <new-backend-ip>"
-          exit 1
-      fi
-      
-      if ! [[ $NEW_IP =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
-          echo "Error: Invalid IP address format"
-          exit 1
-      fi
-      
-      echo "Updating backend IP to: $NEW_IP:25565"
-      sed -i "s/server [0-9]\{1,3\}\\.[0-9]\{1,3\}\\.[0-9]\{1,3\}\\.[0-9]\{1,3\}:25565;/server $NEW_IP:25565;/" /opt/minecraft-proxy/nginx.conf
-      
-      cd /opt/minecraft-proxy
-      # prefer docker compose plugin
-      if command -v docker >/dev/null 2>&1 && docker compose version >/dev/null 2>&1; then
-        docker compose restart minecraft-proxy
-      elif [ -x "/usr/local/bin/docker-compose" ]; then
-        /usr/local/bin/docker-compose restart minecraft-proxy
-      else
-        echo "No docker compose available"
+# Configure Docker
+runcmd:
+  - systemctl enable docker
+  - systemctl start docker
+  - usermod -aG docker ubuntu
+  
+  # Create nginx configuration for Minecraft proxy
+  - mkdir -p /opt/minecraft-proxy
+  - |
+    cat > /opt/minecraft-proxy/nginx.conf << EOF
+    events {
+        worker_connections 1024;
+    }
+    
+    stream {
+        upstream minecraft_backend {
+            server ${minecraft_backend_ip}:25565;
+        }
+        
+        server {
+            listen 25565;
+            proxy_pass minecraft_backend;
+            proxy_timeout 1s;
+            proxy_responses 1;
+            proxy_connect_timeout 1s;
+        }
+        
+        error_log /var/log/nginx/error.log;
+    }
+    EOF
+  
+  # Create docker-compose file
+  - |
+    cat > /opt/minecraft-proxy/docker-compose.yml << EOF
+    version: '3.8'
+    
+    services:
+      minecraft-proxy:
+        image: nginx:1.25-alpine
+        container_name: minecraft-reverse-proxy
+        ports:
+          - "25565:25565"
+        volumes:
+          - ./nginx.conf:/etc/nginx/nginx.conf:ro
+        restart: unless-stopped
+        environment:
+          - NGINX_ENTRYPOINT_QUIET_LOGS=1
+    EOF
+  
+  # Create update script
+  - |
+    cat > /opt/minecraft-proxy/update-backend-ip.sh << 'EOF'
+    #!/bin/bash
+    NEW_IP="$1"
+    
+    if [ -z "$NEW_IP" ]; then
+        echo "Usage: $0 <new-backend-ip>"
         exit 1
-      fi
-      
-      echo "✅ Backend IP updated to $NEW_IP:25565"
+    fi
+    
+    if ! [[ $NEW_IP =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+        echo "Error: Invalid IP address format"
+        exit 1
+    fi
+    
+    echo "Updating backend IP to: $NEW_IP:25565"
+    sed -i "s/server [0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}:25565;/server $NEW_IP:25565;/" /opt/minecraft-proxy/nginx.conf
+    
+    cd /opt/minecraft-proxy
+    docker-compose restart minecraft-proxy
+    
+    echo "✅ Backend IP updated to $NEW_IP:25565"
+    EOF
+  
+  - chmod +x /opt/minecraft-proxy/update-backend-ip.sh
+  
+  # Start the proxy
+  - cd /opt/minecraft-proxy
+  - docker-compose up -d
+  
+  # Create systemd service for auto-start
+  - |
+    cat > /etc/systemd/system/minecraft-proxy.service << EOF
+    [Unit]
+    Description=Minecraft Reverse Proxy
+    Requires=docker.service
+    After=docker.service
+    
+    [Service]
+    Type=oneshot
+    RemainAfterExit=yes
+    WorkingDirectory=/opt/minecraft-proxy
+    ExecStart=/usr/bin/docker-compose up -d
+    ExecStop=/usr/bin/docker-compose down
+    TimeoutStartSec=0
+    
+    [Install]
+    WantedBy=multi-user.target
+    EOF
+  
+  - systemctl enable minecraft-proxy.service
+  - systemctl start minecraft-proxy.service
 
+write_files:
   - path: /opt/minecraft-proxy/README.md
     content: |
       # Minecraft Reverse Proxy
@@ -97,8 +126,8 @@ write_files:
       Check status:
       ```bash
       cd /opt/minecraft-proxy
-      docker compose ps
-      docker compose logs
+      docker-compose ps
+      docker-compose logs
       ```
       
       Update backend IP:
@@ -109,66 +138,12 @@ write_files:
       Manual restart:
       ```bash
       cd /opt/minecraft-proxy
-      sudo docker compose restart
+      sudo docker-compose restart
       ```
-
-  - path: /etc/systemd/system/minecraft-proxy.service
-    content: |
-      [Unit]
-      Description=Minecraft Reverse Proxy
-      Requires=docker.service
-      After=docker.service
-
-      [Service]
-      Type=oneshot
-      RemainAfterExit=yes
-      WorkingDirectory=/opt/minecraft-proxy
-      ExecStart=/usr/bin/docker compose up -d
-      ExecStop=/usr/bin/docker compose down
-      TimeoutStartSec=0
-
-      [Install]
-      WantedBy=multi-user.target
+      
+      ## Files
+      - `/opt/minecraft-proxy/nginx.conf` - Nginx configuration
+      - `/opt/minecraft-proxy/docker-compose.yml` - Docker Compose setup
+      - `/opt/minecraft-proxy/update-backend-ip.sh` - IP update script
 
 final_message: "Minecraft reverse proxy setup complete!"
-
-# runcmd: install Docker reliably, start the stack and enable the service
-runcmd:
-  - |
-    set -euxo pipefail
-    
-    # Verify Docker was installed in package phase
-    if ! command -v docker >/dev/null 2>&1; then
-      echo "ERROR: Docker was not installed in package phase!" >&2
-      exit 1
-    fi
-
-    # Install legacy docker-compose binary as fallback
-    if [ ! -x /usr/local/bin/docker-compose ]; then
-      COMPOSE_VER="v2.20.2"
-      curl -fsSL "https://github.com/docker/compose/releases/download/${COMPOSE_VER}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-      chmod +x /usr/local/bin/docker-compose || true
-    fi
-
-    # Ensure docker starts
-    systemctl daemon-reload || true
-    systemctl enable docker || true
-    systemctl start docker || true
-
-    # Ensure /opt/minecraft-proxy exists and files from write_files are present
-    mkdir -p /opt/minecraft-proxy
-    chown ubuntu:ubuntu /opt/minecraft-proxy || true
-
-    # Start the proxy using docker compose (plugin) with fallback
-    if docker compose version >/dev/null 2>&1; then
-      (cd /opt/minecraft-proxy && docker compose pull || true && docker compose up -d)
-    elif [ -x /usr/local/bin/docker-compose ]; then
-      (cd /opt/minecraft-proxy && /usr/local/bin/docker-compose pull || true && /usr/local/bin/docker-compose up -d)
-    else
-      echo "No docker compose available, aborting start"
-    fi
-
-    # Enable systemd unit
-    systemctl daemon-reload || true
-    systemctl enable minecraft-proxy.service || true
-    systemctl start minecraft-proxy.service || true
