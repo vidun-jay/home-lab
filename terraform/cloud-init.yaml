@@ -2,6 +2,18 @@
 package_update: true
 package_upgrade: true
 
+# Install required packages
+packages:
+  - docker.io
+  - containerd
+  - docker-compose-plugin
+  - ca-certificates
+  - curl
+  - gnupg
+  - lsb-release
+  - apt-transport-https
+  - software-properties-common
+
 # Create proxy files reliably using write_files (these will be templated by Terraform)
 write_files:
   - path: /opt/minecraft-proxy/nginx.conf
@@ -124,13 +136,12 @@ final_message: "Minecraft reverse proxy setup complete!"
 runcmd:
   - |
     set -euxo pipefail
-    echo "==> Installing prerequisites and Docker Engine (official repo)"
-    apt-get update
-    apt-get install -y ca-certificates curl gnupg lsb-release apt-transport-https software-properties-common
-
-    # Use the distro-provided docker package to avoid repository/GPG issues during cloud-init
-    apt-get update
-    DEBIAN_FRONTEND=noninteractive apt-get install -y docker.io containerd docker-compose-plugin || true
+    
+    # Verify Docker was installed in package phase
+    if ! command -v docker >/dev/null 2>&1; then
+      echo "ERROR: Docker was not installed in package phase!" >&2
+      exit 1
+    fi
 
     # Install legacy docker-compose binary as fallback
     if [ ! -x /usr/local/bin/docker-compose ]; then
