@@ -2,14 +2,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
 
 :root {
-  --bg: #f2f2f7;
-  --card: #ffffff;
-  --text: #1c1c1e;
-  --subtext: #6c6c70;
+  --bg: rgb(37, 38, 43);
+  --card: rgb(45, 46, 51);
+  --text: #e4e4e7;
+  --subtext: #a1a1aa;
   --accent: #F8BC05;
-  --success: #2aad3d;
+  --success: #34d058;
   --radius: 12px;
-  --shadow: 0 4px 8px rgba(0,0,0,0.1);
+  --shadow: 0 4px 12px rgba(0,0,0,0.5);
 }
 
 *,
@@ -47,7 +47,7 @@ body {
 }
 
 #search:focus {
-  box-shadow: 0 0 0 3px rgba(10,132,255,0.3);
+  box-shadow: 0 0 0 3px rgba(248,188,5,0.4);
 }
 
 /* search button */
@@ -73,7 +73,7 @@ body {
 }
 
 #searchBtn:disabled {
-  background: #ccc;
+  background: #52525b;
   cursor: default;
 }
 
@@ -101,7 +101,7 @@ body {
 .result:nth-child(even) { animation-delay: 0.2s; }
 
 .result:hover {
-  background: rgba(0,0,0,0.03);
+  background: rgba(255,255,255,0.08);
 }
 
 .result img {
@@ -147,7 +147,7 @@ body {
 }
 
 .btn:disabled {
-  background: #ccc;
+  background: #52525b;
   cursor: default;
 }
 
