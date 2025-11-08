@@ -7,6 +7,21 @@
 </head>
 <body>
 
+  <!-- Theme toggle button with accessible labels and icons -->
+  <button 
+    id="theme-toggle" 
+    aria-label="Toggle dark mode"
+    title="Toggle dark mode">
+    <!-- Moon icon for light mode (shows when you can switch TO dark) -->
+    <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M21.64,13a1,1,0,0,0-1.05-.14,8.05,8.05,0,0,1-3.37.73A8.15,8.15,0,0,1,9.08,5.49a8.59,8.59,0,0,1,.25-2A1,1,0,0,0,8,2.36,10.14,10.14,0,1,0,22,14.05,1,1,0,0,0,21.64,13Z"/>
+    </svg>
+    <!-- Sun icon for dark mode (shows when you can switch TO light) -->
+    <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12,6a1,1,0,0,0,1-1V3a1,1,0,0,0-2,0V5A1,1,0,0,0,12,6ZM5.64,8.05a1,1,0,0,0,.7.29,1,1,0,0,0,.71-.29,1,1,0,0,0,0-1.41l-1.42-1.42a1,1,0,0,0-1.41,1.41ZM5,12a1,1,0,0,0-1-1H3a1,1,0,0,0,0,2H4A1,1,0,0,0,5,12Zm.64,5.66a1,1,0,0,0-1.42,1.41l1.42,1.42a1,1,0,0,0,1.41,0,1,1,0,0,0,0-1.41ZM12,18a1,1,0,0,0-1,1v2a1,1,0,0,0,2,0V19A1,1,0,0,0,12,18Zm6.36-1.34-1.42-1.42a1,1,0,0,0-1.41,1.41l1.41,1.42a1,1,0,0,0,.71.29,1,1,0,0,0,.71-.29A1,1,0,0,0,18.36,16.66ZM21,11H20a1,1,0,0,0,0,2h1a1,1,0,0,0,0-2Zm-2.64-4.71a1,1,0,0,0,.7-.29l1.42-1.42a1,1,0,0,0-1.41-1.41l-1.42,1.41a1,1,0,0,0,0,1.41A1,1,0,0,0,18.36,6.29ZM12,8a4,4,0,1,0,4,4A4,4,0,0,0,12,8Z"/>
+    </svg>
+  </button>
+
   <div class="logo-container">
     <img src="icon.png" alt="Plex Adder logo" class="logo">
   </div>
@@ -24,6 +39,41 @@
   <div id="results"></div>
 
   <script>
+    // === Theme Management (respects prefers-color-scheme + localStorage) ===
+    const THEME_KEY = 'plex-theme'
+    const themeToggle = document.getElementById('theme-toggle')
+    const html = document.documentElement
+
+    // Initialize theme from localStorage or system preference
+    function initTheme() {
+      const savedTheme = localStorage.getItem(THEME_KEY)
+      if (savedTheme) {
+        html.setAttribute('data-theme', savedTheme)
+      }
+      // If no saved preference, CSS will use prefers-color-scheme
+    }
+
+    // Toggle between light/dark and persist to localStorage
+    function toggleTheme() {
+      const currentTheme = html.getAttribute('data-theme')
+      let newTheme
+      
+      if (!currentTheme) {
+        // No explicit theme set, check system preference
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+        newTheme = prefersDark ? 'light' : 'dark'
+      } else {
+        newTheme = currentTheme === 'dark' ? 'light' : 'dark'
+      }
+      
+      html.setAttribute('data-theme', newTheme)
+      localStorage.setItem(THEME_KEY, newTheme)
+    }
+
+    themeToggle.addEventListener('click', toggleTheme)
+    initTheme()
+
+    // === Search and Add to Plex functionality ===
     const searchInput  = document.getElementById('search')
     const searchBtn    = document.getElementById('searchBtn')
     const resultsDiv   = document.getElementById('results')
