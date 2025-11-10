@@ -7,6 +7,7 @@ declare -a HOST_ENTRIES=(
     "192.168.2.22	radarr.lab.local"
     "192.168.2.22	sonarr.lab.local"
     "192.168.2.22	bazarr.lab.local"
+    "192.168.2.22	homarr.lab.local"
     "192.168.2.252	webhook.lab.local"
     "192.168.2.254	esxi.lab.local"
 )
