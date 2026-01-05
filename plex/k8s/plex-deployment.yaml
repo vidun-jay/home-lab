@@ -22,10 +22,21 @@ spec:
           effect: "NoSchedule"
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
+      securityContext:
+        supplementalGroups:
+          - 44   # video
+          - 107  # render
       containers:
       - name: plex
         image: lscr.io/linuxserver/plex:latest
         imagePullPolicy: IfNotPresent
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "2Gi"
+          limits:
+            cpu: "4"
+            memory: "6Gi"
         env:
         - name: PUID
           value: "1000"
@@ -42,6 +53,12 @@ spec:
           mountPath: /config
         - name: media
           mountPath: /data
+        - name: transcode
+          mountPath: /transcode
+        - name: dshm
+          mountPath: /dev/shm
+        - name: dri
+          mountPath: /dev/dri
         ports:
         - containerPort: 32400
         - containerPort: 1900
@@ -54,6 +71,18 @@ spec:
       - name: media
         hostPath:
           path: /mnt/media
+          type: Directory
+      - name: transcode
+        hostPath:
+          path: /mnt/media/plex/transcode
+          type: DirectoryOrCreate
+      - name: dshm
+        emptyDir:
+          medium: Memory
+          sizeLimit: 1Gi
+      - name: dri
+        hostPath:
+          path: /dev/dri
           type: Directory
 ---
 apiVersion: v1
